@@ -6,4 +6,4 @@ scikit-learn
 requests
 beautifulsoup4
 lime
-pymongo  # Optional for MongoDB
+pymongo  # Optional for MongoDB — remove if not using
