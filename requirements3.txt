@@ -1,9 +1,9 @@
-streamlit==1.29.0  # For the app interface
-joblib==1.3.2  # For loading the saved model
-pandas==2.1.4  # For DataFrame handling
-numpy==1.26.2  # For array operations
-scikit-learn==1.3.2  # For TF-IDF, model pipeline, and LogisticRegression
-requests==2.31.0  # For web scraping (HTTP requests)
-beautifulsoup4==4.12.2  # For parsing HTML in scraping
-lime==0.2.0.1  # For explainable AI (LIME)
-pymongo==4.6.1  # For MongoDB (optional — remove if not using)
+streamlit
+joblib
+pandas
+numpy
+scikit-learn
+requests
+beautifulsoup4
+lime
+pymongo  # Optional for MongoDB
