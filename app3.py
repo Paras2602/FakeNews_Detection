@@ -33,14 +33,16 @@ def clean_text(raw_text):
     words = [word for word in text.split() if len(word) > 2]
     return ' '.join(words)
 
-
-# --- 4. MODEL LOADING ---
-MODEL_PATH = 'fake_news_detector_pipeline.pkl' 
+# --- 4. MODEL LOADING (Corrected Filename) ---
+# Check your local folder and use the exact name you see there!
+MODEL_PATH = 'fake_news_model.pkl'  # <--- Change this to the actual file name
 model = None
 try:
     model = joblib.load(MODEL_PATH) 
 except Exception as e:
+    # If this still fails, it means the file wasn't pushed, or the name is still wrong.
     st.error(f"❌ Failed to load model: {e}")
+    st.info("Did you run 'git push origin main' AFTER training and saving the model?")
     st.stop()
 
 
