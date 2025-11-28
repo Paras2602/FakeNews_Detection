@@ -1,61 +1,40 @@
-# --- 1. NUCLEAR FIX: Sequential and Explicit Installation ---
-# This block runs BEFORE anything else and installs crucial libraries sequentially
+# --- 1. NUCLEAR FIX: Force Installation (Cleaned List) ---
 import os
 import sys
 import subprocess
 
-# List core dependencies that MUST be force-installed
+# NLTK removed due to Permission Denied error on the remote server.
+# Using os.system for broader compatibility.
 REQUIRED_PKGS = [
-    "pandas",
-    "numpy", 
-    "scikit-learn", 
-    "joblib", 
-    "nltk",
-    "lime==0.2.0.1", 
-    "requests", 
-    "beautifulsoup4"
+    "pandas", "numpy", "scikit-learn", "joblib", "lime==0.2.0.1", 
+    "requests", "beautifulsoup4"
 ]
 
-# Run pip install command for required packages
 for pkg in REQUIRED_PKGS:
-    try:
-        # Use simple system call for better compatibility on some Streamlit runners
-        os.system(f"{sys.executable} -m pip install {pkg}")
-    except Exception as e:
-        print(f"Failed to force install {pkg}: {e}")
+    os.system(f"{sys.executable} -m pip install {pkg}")
+
 
 # --- 2. Standard Imports (Now safe to import) ---
 import streamlit as st
 import joblib
 import re
-from nltk.corpus import stopwords
-from nltk.stem import WordNetLemmatizer
 from lime.lime_text import LimeTextExplainer
 from bs4 import BeautifulSoup
-import requests
-import nltk # NLTK is now installed
+import requests 
 
-
-# --- 3. NLTK Download (Required resources) ---
-try:
-    nltk.download('stopwords', quiet=True)
-    nltk.download('wordnet', quiet=True)
-except Exception:
-    pass # Continue even if download fails once
-
-
-# --- 4. GLOBAL CLEANING SETUP (Must match training environment) ---
-lemmatizer = WordNetLemmatizer()
-stop_words = set(stopwords.words('english'))
-
+# --- 3. PURE PYTHON CLEANING (No NLTK dependencies) ---
+# This must be IDENTICAL to the cleaning you used to train the final model.
+# Since we remove NLTK, the model may be slightly less accurate, but it will deploy.
 def clean_text(raw_text):
     if not raw_text: return ""
+    # 1. Convert to lowercase and remove non-alphabetic chars
     text = re.sub(r'[^a-zA-Z\s]', '', raw_text.lower())
-    words = text.split()
-    words = [lemmatizer.lemmatize(word) for word in words if word not in stop_words and len(word) > 2]
+    # 2. Split and remove short words (a simple proxy for stopwords/lemmatization)
+    words = [word for word in text.split() if len(word) > 2]
     return ' '.join(words)
 
-# --- 5. MODEL LOADING ---
+
+# --- 4. MODEL LOADING ---
 MODEL_PATH = 'fake_news_detector_pipeline.pkl' 
 model = None
 try:
@@ -65,15 +44,13 @@ except Exception as e:
     st.stop()
 
 
-# --- 6. STREAMLIT APP LOGIC ---
+# --- 5. STREAMLIT APP LOGIC ---
 st.title("AI Fake News Detector")
 st.write("Enter text or a URL to detect if it's fake news.")
 
 # Initialize session state
 if 'input_text' not in st.session_state:
     st.session_state.input_text = ""
-if 'scraped_data' not in st.session_state:
-    st.session_state.scraped_data = "" 
 
 # Input Type Selection
 option = st.selectbox("Input Type", ("Text", "URL"))
@@ -83,11 +60,12 @@ if option == "URL":
     url = st.text_input("Enter news URL:")
     if st.button("Scrape"):
         try:
+            # Scraping logic
             response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
             response.raise_for_status()
             soup = BeautifulSoup(response.text, 'html.parser')
             raw_text = ' '.join(p.text for p in soup.find_all('p'))
-            st.session_state.input_text = raw_text # Use input_text for raw storage
+            st.session_state.input_text = raw_text
             st.info("Scraping successful. Click Detect to analyze.")
         except Exception as e:
             st.error(f"Scraping failed: {e}")
@@ -109,7 +87,7 @@ if st.button("Detect"):
         # 1. Clean the text using the trained function
         cleaned_input = clean_text(text_to_analyze)
 
-        # 2. Predict (Pipeline automatically vectorizes the clean text)
+        # 2. Predict (Pipeline handles vectorization)
         prediction = model.predict([cleaned_input])[0]
         prob_array = model.predict_proba([cleaned_input])[0]
         
