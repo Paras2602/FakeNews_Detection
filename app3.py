@@ -58,20 +58,26 @@ if 'input_text' not in st.session_state:
 option = st.selectbox("Input Type", ("Text", "URL"))
 
 # Input fields
+# In the URL scraping section of app3.py, replace the requests.get line with this:
 if option == "URL":
     url = st.text_input("Enter news URL:")
     if st.button("Scrape"):
-        try:
-            # Scraping logic
-            response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
-            response.raise_for_status()
-            soup = BeautifulSoup(response.text, 'html.parser')
-            raw_text = ' '.join(p.text for p in soup.find_all('p'))
-            st.session_state.input_text = raw_text
-            st.info("Scraping successful. Click Detect to analyze.")
-        except Exception as e:
-            st.error(f"Scraping failed: {e}")
-            st.session_state.input_text = ""
+        with st.spinner("Scraping article..."):
+            try:
+                # Add browser headers to avoid being blocked
+                headers = {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                }
+                response = requests.get(url, headers=headers)  # Add headers here
+                response.raise_for_status()  # Raise error if URL is invalid
+                soup = BeautifulSoup(response.text, 'html.parser')
+                scraped_text = ' '.join(p.text for p in soup.find_all('p'))
+                st.session_state.input_text = clean_text(scraped_text)
+                st.write("Scraped Text Preview:", st.session_state.input_text[:200])
+            except requests.exceptions.HTTPError as e:
+                st.error(f"Scraping failed: Invalid URL or page not found ({e})")
+            except Exception as e:
+                st.error(f"Scraping failed: {e}")
             
 elif option == "Text":
     st.session_state.input_text = st.text_area("Enter news text:", value=st.session_state.input_text)
