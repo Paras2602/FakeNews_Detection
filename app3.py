@@ -1,29 +1,28 @@
-# --- 1. NUCLEAR FIX: Force Installation of Dependencies ---
-# This block runs BEFORE anything else and installs crucial libraries
+# --- 1. NUCLEAR FIX: Sequential and Explicit Installation ---
+# This block runs BEFORE anything else and installs crucial libraries sequentially
 import os
 import sys
 import subprocess
-import nltk # NLTK must be imported before it can be used for downloads
 
-# Set up installation list (Add missing pandas/numpy/requests/bs4)
+# List core dependencies that MUST be force-installed
 REQUIRED_PKGS = [
-    "joblib", 
-    "lime==0.2.0.1", 
-    "nltk", 
-    "pandas", 
+    "pandas",
     "numpy", 
+    "scikit-learn", 
+    "joblib", 
+    "nltk",
+    "lime==0.2.0.1", 
     "requests", 
-    "beautifulsoup4",
-    "scikit-learn" # Needed for the pipeline components
+    "beautifulsoup4"
 ]
 
+# Run pip install command for required packages
 for pkg in REQUIRED_PKGS:
-    # Use check_call to ensure installation succeeds before proceeding
-    subprocess.check_call([sys.executable, "-m", "pip", "install", pkg], stdout=subprocess.DEVNULL)
-
-# Download NLTK resources (runs every time the app starts, needed for cleaning)
-nltk.download('stopwords', quiet=True)
-nltk.download('wordnet', quiet=True)
+    try:
+        # Use simple system call for better compatibility on some Streamlit runners
+        os.system(f"{sys.executable} -m pip install {pkg}")
+    except Exception as e:
+        print(f"Failed to force install {pkg}: {e}")
 
 # --- 2. Standard Imports (Now safe to import) ---
 import streamlit as st
@@ -33,36 +32,40 @@ from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from lime.lime_text import LimeTextExplainer
 from bs4 import BeautifulSoup
-import requests 
+import requests
+import nltk # NLTK is now installed
 
-# --- 3. GLOBAL CLEANING SETUP (Must match training environment) ---
+
+# --- 3. NLTK Download (Required resources) ---
+try:
+    nltk.download('stopwords', quiet=True)
+    nltk.download('wordnet', quiet=True)
+except Exception:
+    pass # Continue even if download fails once
+
+
+# --- 4. GLOBAL CLEANING SETUP (Must match training environment) ---
 lemmatizer = WordNetLemmatizer()
 stop_words = set(stopwords.words('english'))
 
 def clean_text(raw_text):
-    if not raw_text:
-        return ""
-    # REVISED CLEANING: This MUST match your training notebook exactly
+    if not raw_text: return ""
     text = re.sub(r'[^a-zA-Z\s]', '', raw_text.lower())
     words = text.split()
     words = [lemmatizer.lemmatize(word) for word in words if word not in stop_words and len(word) > 2]
     return ' '.join(words)
 
-# --- 4. MODEL LOADING ---
-MODEL_PATH = 'fake_news_detector_pipeline.pkl' # Assuming you saved the pipeline under this name
-
+# --- 5. MODEL LOADING ---
+MODEL_PATH = 'fake_news_detector_pipeline.pkl' 
 model = None
 try:
-    # Load the full pipeline (Vectorizer + Classifier)
     model = joblib.load(MODEL_PATH) 
 except Exception as e:
-    # Display error if model fails to load
     st.error(f"❌ Failed to load model: {e}")
-    st.info("Check if 'fake_news_detector_pipeline.pkl' is in your GitHub repo and correctly named.")
     st.stop()
 
 
-# --- 5. STREAMLIT APP LOGIC ---
+# --- 6. STREAMLIT APP LOGIC ---
 st.title("AI Fake News Detector")
 st.write("Enter text or a URL to detect if it's fake news.")
 
@@ -70,11 +73,12 @@ st.write("Enter text or a URL to detect if it's fake news.")
 if 'input_text' not in st.session_state:
     st.session_state.input_text = ""
 if 'scraped_data' not in st.session_state:
-    st.session_state.scraped_data = "" # To store the raw text before prediction
+    st.session_state.scraped_data = "" 
 
+# Input Type Selection
 option = st.selectbox("Input Type", ("Text", "URL"))
 
-# --- URL Scraping Logic ---
+# Input fields
 if option == "URL":
     url = st.text_input("Enter news URL:")
     if st.button("Scrape"):
@@ -83,19 +87,15 @@ if option == "URL":
             response.raise_for_status()
             soup = BeautifulSoup(response.text, 'html.parser')
             raw_text = ' '.join(p.text for p in soup.find_all('p'))
-            
-            st.session_state.scraped_data = raw_text # Save raw text
-            st.session_state.input_text = raw_text[:500] + "..." # Display preview
+            st.session_state.input_text = raw_text # Use input_text for raw storage
             st.info("Scraping successful. Click Detect to analyze.")
         except Exception as e:
             st.error(f"Scraping failed: {e}")
-            st.session_state.scraped_data = ""
-
-# --- Text Input Logic ---
+            st.session_state.input_text = ""
+            
 elif option == "Text":
-    st.session_state.scraped_data = st.text_area("Enter news text:", value=st.session_state.scraped_data)
-    # Ensure text area updates session state directly for detection
-    st.session_state.input_text = st.session_state.scraped_data
+    st.session_state.input_text = st.text_area("Enter news text:", value=st.session_state.input_text)
+
 
 # --- Prediction Logic ---
 if st.button("Detect"):
