@@ -1,51 +1,46 @@
 # Fake News Detection System
 
-This project is a Machine Learning–based application that classifies news articles as **Fake** or **Real** using Natural Language Processing (NLP) techniques.
+This project is a Machine Learning–based application that classifies news articles as Fake or Real using Natural Language Processing (NLP) techniques.The system also provides explainability using LIME to highlight important words influencing predictions.
 
 ---
 
 ## Features
 - Text preprocessing and cleaning  
 - TF-IDF vectorization for feature extraction  
-- Machine Learning model for classification  
-- Flask-based web application  
-- Simple and user-friendly interface  
+- Logistic Regression model for classification  
+- Streamlit-based web application
+- Simple and user-friendly interface
+- Explainable predictions using LIME
 
 ---
 
 ## Technologies Used
 - Python  
 - Machine Learning  
-- NLP (TF-IDF Vectorizer)  
+- NLP (TF-IDF)  
+- Streamlit
 - Scikit-learn  
-- Flask  
 
 ---
 
 ## Dataset
-- Used publicly available Fake News dataset (e.g., Kaggle dataset)  
-- Contains labeled news articles (Fake / Real)  
+- Used a labeled fake news dataset (Fake/Real classification)  
+- Data preprocessed before training  
 
 ---
 
-## Model Details
-- Algorithm Used: Logistic Regression / Naive Bayes *(update based on what you used)*  
+## Model
+- Algorithm Used: Logistic Regression
 - Feature Extraction: TF-IDF  
-- Training done using Scikit-learn  
-
----
-
-## Performance
-- Achieved accuracy: **~85–95%** *(update your actual accuracy)*  
-- Evaluated using standard metrics like accuracy and confusion matrix  
+- Trained using Scikit-learn  
 
 ---
 
 ## Project Structure
 - `FakeNews_Detection.ipynb` – Model training and analysis  
-- `app3.py` – Flask web application  
-- `fake_news_model.pkl` – Trained model  
-- `requirements.txt` – Dependencies  
+- `app3.py` – Streamlit application  
+- `fake_news_model.pkl` – Trained ML model  
+- `requirements.txt` – Project dependencies  
 
 ---
 
@@ -62,27 +57,35 @@ This project is a Machine Learning–based application that classifies news arti
    pip install -r requirements.txt
    ```
 
-3. Run the Flask app  
+3. Run the application  
    ```bash
-   python app3.py
+   streamlit run app3.py
    ```
 
 4. Open in browser  
    ```
-   http://127.0.0.1:5000/
+   http://localhost:8501/
    ```
 
 ---
 
+## Performance
+- Achieved accuracy of ~85% on test dataset
+
 ## Output
-*(Add screenshots here for better impact)*
+<img width="937" height="627" alt="image" src="https://github.com/user-attachments/assets/77c3d211-08af-43a5-b580-7fa6141a0732" />
+<img width="663" height="800" alt="image" src="https://github.com/user-attachments/assets/fc409488-72e0-4723-a9b0-71bb2c75086e" />
+<img width="645" height="808" alt="image" src="https://github.com/user-attachments/assets/eda60927-853d-4adc-b6f9-26c25e656b3b" />
+<img width="649" height="813" alt="image" src="https://github.com/user-attachments/assets/b097d05d-798f-4c43-9804-7146a6e6a537" />
+
+
 
 ---
 
 ## Future Improvements
-- Deploy the model on cloud  
-- Improve accuracy with advanced NLP models  
-- Add real-time news API integration  
+- Improve model accuracy  
+- Deploy on cloud  
+- Add real-time news input  
 
 ---
 
